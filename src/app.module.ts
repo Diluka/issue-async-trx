@@ -14,7 +14,6 @@ import { AppService } from './app.service';
 import { CommonService } from './common.service';
 import { Record } from './record.entity';
 import { TypeORMLogger } from './typeorm-logger';
-import { UpdateOrderProcessor } from './update-order.processor';
 
 initializeTransactionalContext();
 
@@ -54,6 +53,6 @@ initializeTransactionalContext();
     ),
   ],
   controllers: [AppController],
-  providers: [AppService, AppProcessor, UpdateOrderProcessor, CommonService],
+  providers: [AppService, AppProcessor, CommonService],
 })
 export class AppModule {}

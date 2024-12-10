@@ -2,18 +2,26 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Transactional } from 'typeorm-transactional';
 import { Order } from './order.entity';
+import { CreatorOrder } from './creator-order.entity';
+import { create } from 'domain';
 
 const logger = new Logger('AppService');
 
 @Injectable()
 export class AppService {
-  @OnEvent('order.created')
+  @OnEvent('order.updated')
   @Transactional()
-  async handleOrderCreated(order: Order) {
-    // await Record.update(record.id, { field2: os.hostname() });
+  async handleCreatorOrderUpdated(createOrder: CreatorOrder) {
+    logger.log(`Creator order updated: ${createOrder.id}`);
+    await this.fulfillSalesCreatorOrder(createOrder.id);
   }
 
-  async handleCreatorOrderCreated(order: Order) {
-    // await Record.update(record.id, { field2: os.hostname() });
+  async fulfillSalesCreatorOrder(createOrderId: number) {
+    const creatorOrder = await CreatorOrder.findOne({
+      where: { id: createOrderId },
+    });
+
+    creatorOrder.field1 = 'test';
+    return creatorOrder.save();
   }
 }

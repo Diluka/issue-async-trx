@@ -23,22 +23,25 @@ export class AppProcessor extends WorkerHost {
   async process(job: Job, token?: string): Promise<any> {
     switch (job.name) {
       case 'create-creator-order':
-        return await this.createOrder(job.data);
+        await this.createOrder(job.data);
       case 'update-creator-order':
-        return this.updateOrder(job.data);
+        await this.updateOrder(job.data);
     }
+    return job.data;
   }
 
+  @EmitEvent('order.updated')
   private async updateOrder(id: number) {
     const order = await Order.findOne({
       where: { recordId: id },
     });
-    if (!order) {
-      logger.warn(`Order ${id} not found`);
-      return null;
-    }
+
     order.field2 = 'test111';
     await order.save();
+
+    return await CreatorOrder.findOne({
+      where: { orderId: order.id },
+    });
   }
 
   @Transactional()

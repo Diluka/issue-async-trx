@@ -22,6 +22,19 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it('update', async () => {
+    for (let i = 0; i < 1000; i++) {
+      await axios.post(`${endpoint}/add-update-job`, { i });
+    }
+    while (true) {
+      const resp = await axios.get<{ activeCount: number }>(endpoint);
+      if (resp.data.activeCount === 0) {
+        break;
+      }
+      await setTimeout(100);
+    }
+  });
+
   beforeAll(async () => {
     await axios
       .delete(`${endpoint}/clean-all`)
