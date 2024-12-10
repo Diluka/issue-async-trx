@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+  redis:
+    image: redis:7-alpine
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+      ENDPOINT: http://app:3000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    deploy:
+      replicas: 4

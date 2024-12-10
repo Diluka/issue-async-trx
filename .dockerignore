@@ -1,0 +1,11 @@
+**/*
+
+!src
+!test
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.build.json
+!nest-cli.json
+!.eslintrc.js
+!.prettierrc
