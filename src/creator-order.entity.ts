@@ -3,12 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Order } from './order.entity';
 
 @Entity()
-export class Record extends BaseEntity {
+export class CreatorOrder extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -17,6 +19,12 @@ export class Record extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  orderId: number;
+
+  @ManyToOne(() => Order)
+  order: Order;
 
   @Column({ nullable: true })
   field1: string;

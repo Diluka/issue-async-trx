@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Record extends BaseEntity {
+export class Order extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

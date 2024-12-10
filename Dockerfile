@@ -4,6 +4,7 @@ WORKDIR /app
 
 ADD package.json .
 ADD package-lock.json .
+ADD .npmrc .
 
 RUN npm ci
 
