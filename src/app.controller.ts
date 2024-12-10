@@ -11,7 +11,13 @@ export class AppController {
 
   @Post('add-job')
   async addJob(@Body('i') i: number) {
-    const job = await this.queue.add('test', { i });
+    const job = await this.queue.add('create-creator-order', { i });
+    logger.log(`Job added: ${job.id}, i: ${i}`);
+  }
+
+  @Post('add-update-job')
+  async addUpdateJob(@Body('i') i: number) {
+    const job = await this.queue.add('update-creator-order', { i });
     logger.log(`Job added: ${job.id}, i: ${i}`);
   }
 

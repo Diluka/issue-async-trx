@@ -19,7 +19,7 @@ export class Order extends BaseEntity {
   updatedAt: Date;
 
   @Column({ nullable: true })
-  field1: string;
+  recordId: number;
 
   @Column({ nullable: true })
   field2: string;

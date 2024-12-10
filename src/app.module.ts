@@ -14,6 +14,7 @@ import { AppService } from './app.service';
 import { CommonService } from './common.service';
 import { Record } from './record.entity';
 import { TypeORMLogger } from './typeorm-logger';
+import { UpdateOrderProcessor } from './update-order.processor';
 
 initializeTransactionalContext();
 
@@ -47,9 +48,12 @@ initializeTransactionalContext();
         removeOnComplete: true,
       },
     }),
-    BullModule.registerQueue({ name: 'test-app' }),
+    BullModule.registerQueue(
+      { name: 'test-app' },
+      { name: 'update-order-queue' },
+    ),
   ],
   controllers: [AppController],
-  providers: [AppService, AppProcessor, CommonService],
+  providers: [AppService, AppProcessor, UpdateOrderProcessor, CommonService],
 })
 export class AppModule {}
