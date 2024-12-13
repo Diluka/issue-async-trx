@@ -11,8 +11,8 @@ describe('AppController (e2e)', () => {
   const endpoint = process.env.ENDPOINT || 'http://localhost:3000';
 
   it('start', async () => {
+    const sampleOrders = [];
     for (let i = 0; i < 1000; i++) {
-      // console.log(`Adding job ${i}`);
       const sampleOrder = {
         id: i,
         name: `#${_.padStart(i.toString(), 4, '0')}`,
@@ -29,8 +29,14 @@ describe('AppController (e2e)', () => {
         });
       }
 
+      sampleOrders.push(sampleOrder);
+    }
+
+    const promises = [];
+
+    for (const sampleOrder of sampleOrders) {
       // shopify每种订单事件都会附带一个updated事件，且先后顺序不保证，所以用any来模拟
-      await Promise.any([
+      const p = Promise.any([
         axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
           headers: {
             'X-Shopify-Topic': 'orders/create',
@@ -52,8 +58,13 @@ describe('AppController (e2e)', () => {
           },
         }),
       ]);
+      promises.push(p);
+    }
 
-      await Promise.any([
+    await MyUtil.sleep(1000);
+
+    for (const sampleOrder of sampleOrders) {
+      const p = Promise.any([
         axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
           headers: {
             'X-Shopify-Topic': 'orders/fulfilled',
@@ -75,7 +86,10 @@ describe('AppController (e2e)', () => {
           },
         }),
       ]);
+      promises.push(p);
     }
+
+    await Promise.all(promises);
 
     while (true) {
       const resp = await axios.get<{ activeCount: number }>(endpoint);
