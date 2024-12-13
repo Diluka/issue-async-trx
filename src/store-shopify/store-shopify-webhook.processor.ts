@@ -4,6 +4,7 @@ import { OnWorkerEvent, Processor } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import moment from 'moment';
+import { Transactional } from 'typeorm-transactional';
 import { BaseProcessor, Process } from '../common/bullmq/bullmq-base-processor';
 import { SalesOrderCreateInput } from '../sales/sales-order-create.input';
 import { SalesOrderLineItemCreateInput } from '../sales/sales-order-line-item-create.input';
@@ -21,10 +22,12 @@ export class StoreShopifyWebhookProcessor extends BaseProcessor {
     super();
   }
 
+  @Transactional()
   @Process({ name: 'handle-order-webhooks' })
   async handleOrderWebhooksFromRecord(job: Job<{ recordId: string }>) {
     const record = await StoreShopifyWebhookRecord.findOneOrFail({
       where: { id: job.data.recordId },
+      lock: { mode: 'pessimistic_write' },
     });
 
     const info = await StoreShopfiyAppInfo.findOneByShopCached(record.shop);

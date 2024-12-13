@@ -10,7 +10,7 @@ export default registerAs('typeorm', () => {
     database: process.env.TYPEORM_DATABASE || 'test',
     username: process.env.TYPEORM_USERNAME || 'root',
     password: process.env.TYPEORM_PASSWORD || 'root',
-    synchronize: true,
+    synchronize: false,
     autoLoadEntities: true,
     entityPrefix: 'tmp_',
     logging: true,

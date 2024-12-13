@@ -18,10 +18,13 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "docker:up": "docker compose up -d --build",
+    "docker:up": "docker compose up -d",
     "docker:down": "docker compose down -v",
-    "pretest": "npm run docker:up",
-    "//posttest": "npm run docker:down"
+    "pretest": "npm run docker:migration && npm run docker:up",
+    "//posttest": "npm run docker:down",
+    "docker:migration": "docker compose run --rm --build app npm run typeorm:schema:sync",
+    "typeorm": "node -r tsconfig-paths/register -r ts-node/register ./node_modules/typeorm/cli.js",
+    "typeorm:schema:sync": "npm run typeorm -- -d ./ormconfig.ts schema:sync"
   },
   "dependencies": {
     "@anchan828/nest-redlock": "^0.2.54",

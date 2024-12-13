@@ -52,6 +52,7 @@ export class SalesCreatorOrderService {
     return salesCreatorOrders;
   }
 
+  @Transactional()
   @OnEvent('sales-order.fulfilled', { async: true })
   async handleSaleOrderFulfilled(salesOrder: SalesOrder) {
     this.logger.log(`handleSaleOrderFulfilled ${salesOrder.id}`);
@@ -78,17 +79,17 @@ export class SalesCreatorOrderService {
       });
     }
 
-    Object.assign(
-      salesCreatorOrder,
-      _.pick(salesOrder, [
-        'totalPriceBp',
-        'subtotalPriceBp',
-        'totalTaxBp',
-        'totalDiscountBp',
-        'totalLineItemPriceBp',
-        'totalLineItemDiscountBp',
-      ]),
-    );
+    // Object.assign(
+    //   salesCreatorOrder,
+    //   _.pick(salesOrder, [
+    //     'totalPriceBp',
+    //     'subtotalPriceBp',
+    //     'totalTaxBp',
+    //     'totalDiscountBp',
+    //     'totalLineItemPriceBp',
+    //     'totalLineItemDiscountBp',
+    //   ]),
+    // );
 
     await salesCreatorOrder.save();
 

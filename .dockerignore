@@ -11,3 +11,4 @@
 !.eslintrc.js
 !.prettierrc
 !.npmrc
+!ormconfig.ts

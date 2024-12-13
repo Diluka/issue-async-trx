@@ -1,10 +1,11 @@
 import { BaseEntity, IDColumnOpts } from '@app/shared';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { Store } from '../store/store.entity';
 import { SalesOrderFulfillmentStatus } from './sales-order-fulfillment-status.enum';
 import { SalesOrderLineItem } from './sales-order-line-item.entity';
 import { SalesOrder } from './sales-order.entity';
 
+@Unique(['storeId', 'salesOrderId'])
 @Entity()
 export class SalesCreatorOrder extends BaseEntity {
   @Column({ ...IDColumnOpts })
