@@ -129,13 +129,7 @@ export class TypeORMLogger implements ITypeORMLogger {
    * Logs events from the migrations run process.
    */
   logMigration(message: string, queryRunner?: QueryRunner) {
-    if (
-      this.options === 'all' ||
-      this.options === true ||
-      (Array.isArray(this.options) && this.options.indexOf('migration') !== -1)
-    ) {
-      this.logger.debug(message);
-    }
+    this.logger.debug(message);
   }
 
   /**

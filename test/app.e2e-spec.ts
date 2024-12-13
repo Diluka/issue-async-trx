@@ -1,6 +1,9 @@
+import { MyUtil } from '@app/shared';
 import axios from 'axios';
+import { randomUUID } from 'crypto';
+import _ from 'lodash';
 import * as process from 'node:process';
-import { setTimeout } from 'node:timers/promises';
+import { SalesOrderFulfillmentStatus } from '../src/sales/sales-order-fulfillment-status.enum';
 
 jest.setTimeout(300000);
 
@@ -10,7 +13,68 @@ describe('AppController (e2e)', () => {
   it('start', async () => {
     for (let i = 0; i < 1000; i++) {
       // console.log(`Adding job ${i}`);
-      await axios.post(`${endpoint}/add-job`, { i });
+      const sampleOrder = {
+        id: i,
+        name: `#${_.padStart(i.toString(), 4, '0')}`,
+        updated_at: new Date(),
+        line_items: [],
+      };
+
+      for (let j = 0; j < 3; j++) {
+        sampleOrder.line_items.push({
+          id: `${i}-${j}`,
+          name: `test-${j}`,
+          sku: `test-${j}`,
+          quantity: j,
+        });
+      }
+
+      // shopify每种订单事件都会附带一个updated事件，且先后顺序不保证，所以用any来模拟
+      await Promise.any([
+        axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
+          headers: {
+            'X-Shopify-Topic': 'orders/create',
+            'X-Shopify-Hmac-Sha256': 'test',
+            'X-Shopify-Shop-Domain': 'test-store',
+            'X-Shopify-API-Version': '2021-07',
+            'X-Shopify-Webhook-Id': randomUUID(),
+            'X-Shopify-Triggered-At': new Date().toISOString(),
+          },
+        }),
+        axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
+          headers: {
+            'X-Shopify-Topic': 'orders/updated',
+            'X-Shopify-Hmac-Sha256': 'test',
+            'X-Shopify-Shop-Domain': 'test-store',
+            'X-Shopify-API-Version': '2021-07',
+            'X-Shopify-Webhook-Id': randomUUID(),
+            'X-Shopify-Triggered-At': new Date().toISOString(),
+          },
+        }),
+      ]);
+
+      await Promise.any([
+        axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
+          headers: {
+            'X-Shopify-Topic': 'orders/fulfilled',
+            'X-Shopify-Hmac-Sha256': 'test',
+            'X-Shopify-Shop-Domain': 'test-store',
+            'X-Shopify-API-Version': '2021-07',
+            'X-Shopify-Webhook-Id': randomUUID(),
+            'X-Shopify-Triggered-At': new Date().toISOString(),
+          },
+        }),
+        axios.post(`${endpoint}/store-shopify/-/webhooks`, sampleOrder, {
+          headers: {
+            'X-Shopify-Topic': 'orders/updated',
+            'X-Shopify-Hmac-Sha256': 'test',
+            'X-Shopify-Shop-Domain': 'test-store',
+            'X-Shopify-API-Version': '2021-07',
+            'X-Shopify-Webhook-Id': randomUUID(),
+            'X-Shopify-Triggered-At': new Date().toISOString(),
+          },
+        }),
+      ]);
     }
 
     while (true) {
@@ -18,20 +82,7 @@ describe('AppController (e2e)', () => {
       if (resp.data.activeCount === 0) {
         break;
       }
-      await setTimeout(100);
-    }
-  });
-
-  it('update', async () => {
-    for (let i = 0; i < 1000; i++) {
-      await axios.post(`${endpoint}/add-update-job`, { i });
-    }
-    while (true) {
-      const resp = await axios.get<{ activeCount: number }>(endpoint);
-      if (resp.data.activeCount === 0) {
-        break;
-      }
-      await setTimeout(100);
+      await MyUtil.sleep(100);
     }
   });
 
@@ -44,7 +95,9 @@ describe('AppController (e2e)', () => {
   afterAll(async () => {
     const resp = await axios.get(`${endpoint}/results`);
     console.log(resp.data);
-    const failedCount = resp.data.filter((o) => !o.field2).length;
+    const failedCount = resp.data.filter(
+      (o) => o.fulfillmentStatus !== SalesOrderFulfillmentStatus.FULFILLED,
+    ).length;
     console.log(`Failed records: ${failedCount}/${resp.data.length}`);
     expect(failedCount).toBe(0);
   });

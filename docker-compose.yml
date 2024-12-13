@@ -15,7 +15,7 @@ services:
   app:
     build: .
     environment:
-      DB_HOST: db
+      TYPEORM_HOST: db
       REDIS_HOST: redis
       ENDPOINT: http://app:3000
     depends_on:

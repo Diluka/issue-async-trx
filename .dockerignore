@@ -1,6 +1,7 @@
 **/*
 
 !src
+!libs
 !test
 !package.json
 !package-lock.json

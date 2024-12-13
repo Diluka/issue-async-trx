@@ -1,58 +1,29 @@
-import { BullModule } from '@nestjs/bullmq';
-import { Global, Module } from '@nestjs/common';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import * as process from 'node:process';
-import { DataSource } from 'typeorm';
-import {
-  addTransactionalDataSource,
-  initializeTransactionalContext,
-} from 'typeorm-transactional';
+import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppProcessor } from './app.processor';
-import { AppService } from './app.service';
-import { CommonService } from './common.service';
-import { Record } from './record.entity';
-import { TypeORMLogger } from './typeorm-logger';
-
-initializeTransactionalContext();
+import { CommonModule } from './common/common.module';
+import { SalesModule } from './sales/sales.module';
+import { StoreShopfiyAppInfo } from './store-shopify/store-shopfiy-app-info.entity';
+import { StoreShopifyModule } from './store-shopify/store-shopify.module';
+import { Store } from './store/store.entity';
+import { StoreModule } from './store/store.module';
 
 @Global()
 @Module({
-  imports: [
-    TypeOrmModule.forRootAsync({
-      useFactory: () => ({
-        type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        username: 'root',
-        password: 'root',
-        database: 'test',
-        entityPrefix: 'tmp_',
-        synchronize: true,
-        logging: true,
-        logger: new TypeORMLogger(true),
-        autoLoadEntities: true,
-      }),
-      async dataSourceFactory(options) {
-        return addTransactionalDataSource(new DataSource(options));
-      },
-    }),
-    TypeOrmModule.forFeature([Record]),
-    EventEmitterModule.forRoot(),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-      },
-      defaultJobOptions: {
-        removeOnComplete: true,
-      },
-    }),
-    BullModule.registerQueue(
-      { name: 'test-app' },
-      { name: 'update-order-queue' },
-    ),
-  ],
+  imports: [CommonModule, SalesModule, StoreModule, StoreShopifyModule],
   controllers: [AppController],
-  providers: [AppService, AppProcessor, CommonService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  async onModuleInit() {
+    let testStore = await Store.findOne({ where: { id: 'st-test' } });
+    if (!testStore) {
+      testStore = await Store.create({
+        id: 'st-test',
+        title: 'test-store',
+      }).save();
+      await StoreShopfiyAppInfo.create({
+        storeId: testStore.id,
+        shopName: 'test-store',
+      }).save();
+    }
+  }
+}
